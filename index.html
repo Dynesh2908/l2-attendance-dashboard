@@ -49,8 +49,8 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
       margin-bottom: 30px;
       padding: 20px;
       background: #f8f9fa;
@@ -66,7 +66,7 @@
     .filter-group label {
       font-weight: 600;
       color: #333;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .filter-group select,
@@ -75,7 +75,7 @@
       border: 2px solid #e0e0e0;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       transition: border-color 0.3s;
     }
 
@@ -86,15 +86,17 @@
     }
 
     .filter-btn {
-      padding: 10px 20px;
+      padding: 10px 16px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
+      font-size: 13px;
       transition: all 0.3s;
       align-self: flex-end;
+      margin-top: 22px;
     }
 
     .filter-btn:hover {
@@ -104,8 +106,8 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
       margin-bottom: 30px;
     }
 
@@ -119,7 +121,7 @@
     }
 
     .stat-card h3 {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       opacity: 0.9;
       margin-bottom: 10px;
@@ -127,7 +129,7 @@
     }
 
     .stat-card .value {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: bold;
     }
 
@@ -328,7 +330,7 @@
       </div>
 
       <div class="filter-group">
-        <label for="managerFilter">👤 Select Manager:</label>
+        <label for="managerFilter">👤 Manager:</label>
         <select id="managerFilter">
           <option value="">-- All Managers --</option>
           <option value="Rashmi Nair">Rashmi Nair</option>
@@ -339,7 +341,7 @@
       </div>
 
       <div class="filter-group">
-        <label for="statusFilter">📊 Filter by Status:</label>
+        <label for="statusFilter">📊 Status:</label>
         <select id="statusFilter">
           <option value="">-- All Status --</option>
           <option value="Present">✅ Present</option>
@@ -350,13 +352,13 @@
       </div>
 
       <div class="filter-group">
-        <label for="mapperFilter">🗺️ Select Mapper:</label>
+        <label for="mapperFilter">🗺️ Mapper:</label>
         <select id="mapperFilter">
           <option value="">-- All Mappers --</option>
         </select>
       </div>
 
-      <button class="filter-btn" onclick="applyFilters()">🔍 APPLY FILTERS</button>
+      <button class="filter-btn" onclick="applyFilters()">🔍 APPLY</button>
     </div>
 
     <!-- DATE INFO -->
@@ -369,19 +371,19 @@
         <div class="value" id="totalMappers">0</div>
       </div>
       <div class="stat-card">
-        <h3>Present</h3>
+        <h3>✅ Present</h3>
         <div class="value" id="presentCount">0</div>
       </div>
       <div class="stat-card">
-        <h3>Half Day</h3>
+        <h3>🌙 Half Day</h3>
         <div class="value" id="halfDayCount">0</div>
       </div>
       <div class="stat-card">
-        <h3>On Leave</h3>
+        <h3>❌ Leave</h3>
         <div class="value" id="leaveCount">0</div>
       </div>
       <div class="stat-card">
-        <h3>No Update</h3>
+        <h3>⏳ No Update</h3>
         <div class="value" id="noUpdateCount">0</div>
       </div>
     </div>
@@ -434,7 +436,7 @@
     var attendanceChart = null;
     var managerChart = null;
 
-    // SAMPLE DATA WITH "NO Update" STATUS
+    // SAMPLE DATA WITH "NO UPDATE" STATUS
     const SAMPLE_DATA = [
       { mapperName: 'Adharsh S', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalNoUpdate: 0, totalOT: 8, attendancePercent: '95%', todayStatus: 'Present' },
       { mapperName: 'Adithya Vardhan J', manager: 'Shanmuga Priya', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalNoUpdate: 0, totalOT: 4, attendancePercent: '97%', todayStatus: 'Present' },
@@ -445,24 +447,22 @@
       { mapperName: 'Athul T', manager: 'Vignesh Baskaran', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalNoUpdate: 0, totalOT: 2, attendancePercent: '97%', todayStatus: 'Present' },
       { mapperName: 'BALAJI E', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalNoUpdate: 0, totalOT: 8, attendancePercent: '92%', todayStatus: 'Present' },
       { mapperName: 'Bawani LND', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalNoUpdate: 0, totalOT: 4, attendancePercent: '95%', todayStatus: 'Half Day' },
-      { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalNoUpdate: 0, totalOT: 0, attendancePercent: '99%', todayStatus: 'No Update' }
+      { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalNoUpdate: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'No Update' }
     ];
 
     function loadInitialData() {
       console.log('📊 Loading initial data...');
       
-      // SET TODAY'S DATE AS DEFAULT
       var today = new Date();
       document.getElementById('dateFilter').valueAsDate = today;
       updateDateInfo(today);
 
-      // LOAD SAMPLE DATA
       allData = SAMPLE_DATA;
       filteredData = allData;
       populateMapperDropdown(allData);
       updateDashboard();
       
-      showSuccess('✅ Dashboard loaded with sample data. Connect your Google Sheet to see real data!');
+      showSuccess('✅ Dashboard loaded with sample data!');
     }
 
     function populateMapperDropdown(data) {
@@ -489,7 +489,7 @@
       var selectedStatus = document.getElementById('statusFilter').value;
       var selectedMapper = document.getElementById('mapperFilter').value;
 
-      console.log('🔍 Applying filters - Date:', selectedDate, 'Manager:', selectedManager, 'Status:', selectedStatus, 'Mapper:', selectedMapper);
+      console.log('🔍 Filters - Date:', selectedDate, 'Manager:', selectedManager, 'Status:', selectedStatus, 'Mapper:', selectedMapper);
 
       filteredData = allData;
 
