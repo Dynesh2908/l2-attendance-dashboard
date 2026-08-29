@@ -216,9 +216,9 @@
       color: #721c24;
     }
 
-    .status-empty {
-      background: #e0e0e0;
-      color: #666;
+    .status-no-update {
+      background: #e2e3e5;
+      color: #383d41;
     }
 
     .loading {
@@ -339,6 +339,17 @@
       </div>
 
       <div class="filter-group">
+        <label for="statusFilter">📊 Filter by Status:</label>
+        <select id="statusFilter">
+          <option value="">-- All Status --</option>
+          <option value="Present">✅ Present</option>
+          <option value="Half Day">🌙 Half Day</option>
+          <option value="Leave">❌ Leave</option>
+          <option value="No Update">⏳ No Update</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
         <label for="mapperFilter">🗺️ Select Mapper:</label>
         <select id="mapperFilter">
           <option value="">-- All Mappers --</option>
@@ -369,6 +380,10 @@
         <h3>On Leave</h3>
         <div class="value" id="leaveCount">0</div>
       </div>
+      <div class="stat-card">
+        <h3>No Update</h3>
+        <div class="value" id="noUpdateCount">0</div>
+      </div>
     </div>
 
     <!-- CHARTS -->
@@ -391,17 +406,18 @@
           <tr>
             <th>Mapper Name</th>
             <th>Manager</th>
-            <th>Status</th>
+            <th>Today Status</th>
             <th>Total Present</th>
             <th>Total Half Day</th>
             <th>Total Leave</th>
+            <th>Total No Update</th>
             <th>OT Hours</th>
             <th>Attendance %</th>
           </tr>
         </thead>
         <tbody id="tableBody">
           <tr>
-            <td colspan="8" style="text-align: center; padding: 40px;">
+            <td colspan="9" style="text-align: center; padding: 40px;">
               <div class="loading">
                 <span class="spinner"></span>Loading sample data...
               </div>
@@ -418,18 +434,18 @@
     var attendanceChart = null;
     var managerChart = null;
 
-    // SAMPLE DATA (Replace with your Google Sheet data later)
+    // SAMPLE DATA WITH "NO Update" STATUS
     const SAMPLE_DATA = [
-      { mapperName: 'Adharsh S', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalOT: 8, attendancePercent: '95%', todayStatus: 'Present' },
-      { mapperName: 'Adithya Vardhan J', manager: 'Shanmuga Priya', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalOT: 4, attendancePercent: '97%', todayStatus: 'Present' },
-      { mapperName: 'Aditya Parihar', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalOT: 12, attendancePercent: '92%', todayStatus: 'Half Day' },
-      { mapperName: 'Amjath Ellyas', manager: 'Gokila', totalPresent: 16, totalHalf: 3, totalLeave: 2, totalOT: 6, attendancePercent: '90%', todayStatus: 'Present' },
-      { mapperName: 'ANUMANDLA VARAPRASAD', manager: 'Gokila', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'Present' },
-      { mapperName: 'Aruna Kumari', manager: 'Shanmuga Priya', totalPresent: 18, totalHalf: 1, totalLeave: 2, totalOT: 10, attendancePercent: '94%', todayStatus: 'Leave' },
-      { mapperName: 'Athul T', manager: 'Vignesh Baskaran', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalOT: 2, attendancePercent: '97%', todayStatus: 'Present' },
-      { mapperName: 'BALAJI E', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalOT: 8, attendancePercent: '92%', todayStatus: 'Present' },
-      { mapperName: 'Bawani LND', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalOT: 4, attendancePercent: '95%', todayStatus: 'Half Day' },
-      { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'Present' }
+      { mapperName: 'Adharsh S', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalNoUpdate: 0, totalOT: 8, attendancePercent: '95%', todayStatus: 'Present' },
+      { mapperName: 'Adithya Vardhan J', manager: 'Shanmuga Priya', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalNoUpdate: 0, totalOT: 4, attendancePercent: '97%', todayStatus: 'Present' },
+      { mapperName: 'Aditya Parihar', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalNoUpdate: 0, totalOT: 12, attendancePercent: '92%', todayStatus: 'Half Day' },
+      { mapperName: 'Amjath Ellyas', manager: 'Gokila', totalPresent: 16, totalHalf: 3, totalLeave: 2, totalNoUpdate: 0, totalOT: 6, attendancePercent: '90%', todayStatus: 'Present' },
+      { mapperName: 'ANUMANDLA VARAPRASAD', manager: 'Gokila', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalNoUpdate: 0, totalOT: 0, attendancePercent: '99%', todayStatus: 'Present' },
+      { mapperName: 'Aruna Kumari', manager: 'Shanmuga Priya', totalPresent: 18, totalHalf: 1, totalLeave: 2, totalNoUpdate: 0, totalOT: 10, attendancePercent: '94%', todayStatus: 'Leave' },
+      { mapperName: 'Athul T', manager: 'Vignesh Baskaran', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalNoUpdate: 0, totalOT: 2, attendancePercent: '97%', todayStatus: 'Present' },
+      { mapperName: 'BALAJI E', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalNoUpdate: 0, totalOT: 8, attendancePercent: '92%', todayStatus: 'Present' },
+      { mapperName: 'Bawani LND', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalNoUpdate: 0, totalOT: 4, attendancePercent: '95%', todayStatus: 'Half Day' },
+      { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalNoUpdate: 0, totalOT: 0, attendancePercent: '99%', todayStatus: 'No Update' }
     ];
 
     function loadInitialData() {
@@ -470,15 +486,22 @@
     function applyFilters() {
       var selectedDate = document.getElementById('dateFilter').value;
       var selectedManager = document.getElementById('managerFilter').value;
+      var selectedStatus = document.getElementById('statusFilter').value;
       var selectedMapper = document.getElementById('mapperFilter').value;
 
-      console.log('🔍 Applying filters - Date:', selectedDate, 'Manager:', selectedManager, 'Mapper:', selectedMapper);
+      console.log('🔍 Applying filters - Date:', selectedDate, 'Manager:', selectedManager, 'Status:', selectedStatus, 'Mapper:', selectedMapper);
 
       filteredData = allData;
 
       if (selectedManager) {
         filteredData = filteredData.filter(function(item) {
           return item.manager === selectedManager;
+        });
+      }
+
+      if (selectedStatus) {
+        filteredData = filteredData.filter(function(item) {
+          return item.todayStatus === selectedStatus;
         });
       }
 
@@ -503,18 +526,20 @@
       var presentCount = filteredData.filter(function(item) { return item.todayStatus === 'Present'; }).length;
       var halfDayCount = filteredData.filter(function(item) { return item.todayStatus === 'Half Day'; }).length;
       var leaveCount = filteredData.filter(function(item) { return item.todayStatus === 'Leave'; }).length;
+      var noUpdateCount = filteredData.filter(function(item) { return item.todayStatus === 'No Update'; }).length;
 
       document.getElementById('totalMappers').textContent = totalMappers;
       document.getElementById('presentCount').textContent = presentCount;
       document.getElementById('halfDayCount').textContent = halfDayCount;
       document.getElementById('leaveCount').textContent = leaveCount;
+      document.getElementById('noUpdateCount').textContent = noUpdateCount;
     }
 
     function updateCharts() {
       var presentCount = filteredData.filter(function(item) { return item.todayStatus === 'Present'; }).length;
       var halfDayCount = filteredData.filter(function(item) { return item.todayStatus === 'Half Day'; }).length;
       var leaveCount = filteredData.filter(function(item) { return item.todayStatus === 'Leave'; }).length;
-      var notMarkedCount = filteredData.filter(function(item) { return !item.todayStatus; }).length;
+      var noUpdateCount = filteredData.filter(function(item) { return item.todayStatus === 'No Update'; }).length;
 
       var ctx1 = document.getElementById('attendanceChart').getContext('2d');
       if (attendanceChart) {
@@ -523,11 +548,11 @@
       attendanceChart = new Chart(ctx1, {
         type: 'doughnut',
         data: {
-          labels: ['Present', 'Half Day', 'Leave', 'Not Marked'],
+          labels: ['Present', 'Half Day', 'Leave', 'No Update'],
           datasets: [{
-            data: [presentCount, halfDayCount, leaveCount, notMarkedCount],
-            backgroundColor: ['#34A853', '[MAC_ADDRESS]', '#EA4335', '#CCCCCC'],
-            borderColor: ['[MAC_ADDRESS]', '[MAC_ADDRESS]', '#c5221f', '#999999'],
+            data: [presentCount, halfDayCount, leaveCount, noUpdateCount],
+            backgroundColor: ['#34A853', '#FBBC04', '#EA4335', '#6C757D'],
+            borderColor: ['#2d8659', '#d4a000', '#c5221f', '#5a6268'],
             borderWidth: 2
           }]
         },
@@ -563,8 +588,8 @@
           datasets: [{
             label: 'Number of Mappers',
             data: counts,
-            backgroundColor: ['#667eea', '#764ba2', '#34A853', '[MAC_ADDRESS]'],
-            borderColor: ['[MAC_ADDRESS]', '[MAC_ADDRESS]', '[MAC_ADDRESS]', '[MAC_ADDRESS]'],
+            backgroundColor: ['#667eea', '#764ba2', '#34A853', '#FBBC04'],
+            borderColor: ['#5568d3', '#6a4291', '#2d8659', '#d4a000'],
             borderWidth: 2
           }]
         },
@@ -590,7 +615,7 @@
       tableBody.innerHTML = '';
 
       if (filteredData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No data available</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No data available</td></tr>';
         return;
       }
 
@@ -602,8 +627,8 @@
           statusBadge = '<span class="status-badge status-half">🌙 Half Day</span>';
         } else if (item.todayStatus === 'Leave') {
           statusBadge = '<span class="status-badge status-leave">❌ Leave</span>';
-        } else {
-          statusBadge = '<span class="status-badge status-empty">⏳ Not Marked</span>';
+        } else if (item.todayStatus === 'No Update') {
+          statusBadge = '<span class="status-badge status-no-update">⏳ No Update</span>';
         }
 
         var row = '<tr>' +
@@ -613,6 +638,7 @@
           '<td>' + item.totalPresent + '</td>' +
           '<td>' + item.totalHalf + '</td>' +
           '<td>' + item.totalLeave + '</td>' +
+          '<td>' + item.totalNoUpdate + '</td>' +
           '<td>' + item.totalOT + '</td>' +
           '<td><strong>' + item.attendancePercent + '</strong></td>' +
           '</tr>';
