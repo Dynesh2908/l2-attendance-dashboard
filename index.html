@@ -1,0 +1,647 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L2 Team - Attendance Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+    }
+
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 20px;
+    }
+
+    .dashboard-header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .dashboard-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      align-self: flex-end;
+    }
+
+    .filter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .chart-container {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-container h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .table-container {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+
+    .table-container h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    table thead {
+      background: #667eea;
+      color: white;
+    }
+
+    table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    table tbody tr:hover {
+      background: #f0f0f0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-present {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-half {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-leave {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-empty {
+      background: #e0e0e0;
+      color: #666;
+    }
+
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-weight: 600;
+      padding: 40px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .manager-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .date-info {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f0f0f0;
+      border-radius: 6px;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      table th, table td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>📊 L2 Team Attendance Dashboard</h1>
+      <p>Real-time attendance tracking and analytics</p>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <div class="filter-group">
+        <label for="dateFilter">📅 Select Date:</label>
+        <input type="date" id="dateFilter">
+      </div>
+
+      <div class="filter-group">
+        <label for="managerFilter">👤 Select Manager:</label>
+        <select id="managerFilter">
+          <option value="">-- All Managers --</option>
+          <option value="Rashmi Nair">Rashmi Nair</option>
+          <option value="Shanmuga Priya">Shanmuga Priya</option>
+          <option value="Gokila">Gokila</option>
+          <option value="Vignesh Baskaran">Vignesh Baskaran</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="mapperFilter">🗺️ Select Mapper:</label>
+        <select id="mapperFilter">
+          <option value="">-- All Mappers --</option>
+        </select>
+      </div>
+
+      <button class="filter-btn" onclick="applyFilters()">🔍 APPLY FILTERS</button>
+    </div>
+
+    <!-- DATE INFO -->
+    <div class="date-info" id="dateInfo"></div>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <h3>Total Mappers</h3>
+        <div class="value" id="totalMappers">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Present</h3>
+        <div class="value" id="presentCount">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Half Day</h3>
+        <div class="value" id="halfDayCount">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>On Leave</h3>
+        <div class="value" id="leaveCount">0</div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-grid">
+      <div class="chart-container">
+        <h3>📈 Attendance Status Distribution</h3>
+        <canvas id="attendanceChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>👥 Mappers by Manager</h3>
+        <canvas id="managerChart"></canvas>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+      <h3>📋 Mapper Attendance Details</h3>
+      <table id="attendanceTable">
+        <thead>
+          <tr>
+            <th>Mapper Name</th>
+            <th>Manager</th>
+            <th>Status</th>
+            <th>Total Present</th>
+            <th>Total Half Day</th>
+            <th>Total Leave</th>
+            <th>OT Hours</th>
+            <th>Attendance %</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px;">
+              <div class="loading">
+                <span class="spinner"></span>Loading sample data...
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    var allData = [];
+    var filteredData = [];
+    var attendanceChart = null;
+    var managerChart = null;
+
+    // SAMPLE DATA (Replace with your Google Sheet data later)
+    const SAMPLE_DATA = [
+      { mapperName: 'Adharsh S', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalOT: 8, attendancePercent: '95%', todayStatus: 'Present' },
+      { mapperName: 'Adithya Vardhan J', manager: 'Shanmuga Priya', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalOT: 4, attendancePercent: '97%', todayStatus: 'Present' },
+      { mapperName: 'Aditya Parihar', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalOT: 12, attendancePercent: '92%', todayStatus: 'Half Day' },
+      { mapperName: 'Amjath Ellyas', manager: 'Gokila', totalPresent: 16, totalHalf: 3, totalLeave: 2, totalOT: 6, attendancePercent: '90%', todayStatus: 'Present' },
+      { mapperName: 'ANUMANDLA VARAPRASAD', manager: 'Gokila', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'Present' },
+      { mapperName: 'Aruna Kumari', manager: 'Shanmuga Priya', totalPresent: 18, totalHalf: 1, totalLeave: 2, totalOT: 10, attendancePercent: '94%', todayStatus: 'Leave' },
+      { mapperName: 'Athul T', manager: 'Vignesh Baskaran', totalPresent: 19, totalHalf: 1, totalLeave: 1, totalOT: 2, attendancePercent: '97%', todayStatus: 'Present' },
+      { mapperName: 'BALAJI E', manager: 'Shanmuga Priya', totalPresent: 17, totalHalf: 2, totalLeave: 2, totalOT: 8, attendancePercent: '92%', todayStatus: 'Present' },
+      { mapperName: 'Bawani LND', manager: 'Rashmi Nair', totalPresent: 18, totalHalf: 2, totalLeave: 1, totalOT: 4, attendancePercent: '95%', todayStatus: 'Half Day' },
+      { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'Present' }
+    ];
+
+    function loadInitialData() {
+      console.log('📊 Loading initial data...');
+      
+      // SET TODAY'S DATE AS DEFAULT
+      var today = new Date();
+      document.getElementById('dateFilter').valueAsDate = today;
+      updateDateInfo(today);
+
+      // LOAD SAMPLE DATA
+      allData = SAMPLE_DATA;
+      filteredData = allData;
+      populateMapperDropdown(allData);
+      updateDashboard();
+      
+      showSuccess('✅ Dashboard loaded with sample data. Connect your Google Sheet to see real data!');
+    }
+
+    function populateMapperDropdown(data) {
+      var select = document.getElementById('mapperFilter');
+      var mapperNames = [...new Set(data.map(item => item.mapperName))].sort();
+      
+      mapperNames.forEach(function(name) {
+        var option = document.createElement('option');
+        option.value = name;
+        option.text = name;
+        select.appendChild(option);
+      });
+    }
+
+    function updateDateInfo(date) {
+      var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      var dateStr = date.toLocaleDateString('en-IN', options);
+      document.getElementById('dateInfo').textContent = '📅 Viewing data for: ' + dateStr;
+    }
+
+    function applyFilters() {
+      var selectedDate = document.getElementById('dateFilter').value;
+      var selectedManager = document.getElementById('managerFilter').value;
+      var selectedMapper = document.getElementById('mapperFilter').value;
+
+      console.log('🔍 Applying filters - Date:', selectedDate, 'Manager:', selectedManager, 'Mapper:', selectedMapper);
+
+      filteredData = allData;
+
+      if (selectedManager) {
+        filteredData = filteredData.filter(function(item) {
+          return item.manager === selectedManager;
+        });
+      }
+
+      if (selectedMapper) {
+        filteredData = filteredData.filter(function(item) {
+          return item.mapperName === selectedMapper;
+        });
+      }
+
+      updateDateInfo(new Date(selectedDate));
+      updateDashboard();
+    }
+
+    function updateDashboard() {
+      updateStats();
+      updateCharts();
+      updateTable();
+    }
+
+    function updateStats() {
+      var totalMappers = filteredData.length;
+      var presentCount = filteredData.filter(function(item) { return item.todayStatus === 'Present'; }).length;
+      var halfDayCount = filteredData.filter(function(item) { return item.todayStatus === 'Half Day'; }).length;
+      var leaveCount = filteredData.filter(function(item) { return item.todayStatus === 'Leave'; }).length;
+
+      document.getElementById('totalMappers').textContent = totalMappers;
+      document.getElementById('presentCount').textContent = presentCount;
+      document.getElementById('halfDayCount').textContent = halfDayCount;
+      document.getElementById('leaveCount').textContent = leaveCount;
+    }
+
+    function updateCharts() {
+      var presentCount = filteredData.filter(function(item) { return item.todayStatus === 'Present'; }).length;
+      var halfDayCount = filteredData.filter(function(item) { return item.todayStatus === 'Half Day'; }).length;
+      var leaveCount = filteredData.filter(function(item) { return item.todayStatus === 'Leave'; }).length;
+      var notMarkedCount = filteredData.filter(function(item) { return !item.todayStatus; }).length;
+
+      var ctx1 = document.getElementById('attendanceChart').getContext('2d');
+      if (attendanceChart) {
+        attendanceChart.destroy();
+      }
+      attendanceChart = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['Present', 'Half Day', 'Leave', 'Not Marked'],
+          datasets: [{
+            data: [presentCount, halfDayCount, leaveCount, notMarkedCount],
+            backgroundColor: ['#34A853', '[MAC_ADDRESS]', '#EA4335', '#CCCCCC'],
+            borderColor: ['[MAC_ADDRESS]', '[MAC_ADDRESS]', '#c5221f', '#999999'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+
+      var managerCounts = {};
+      filteredData.forEach(function(item) {
+        if (!managerCounts[item.manager]) {
+          managerCounts[item.manager] = 0;
+        }
+        managerCounts[item.manager]++;
+      });
+
+      var managers = Object.keys(managerCounts);
+      var counts = Object.values(managerCounts);
+
+      var ctx2 = document.getElementById('managerChart').getContext('2d');
+      if (managerChart) {
+        managerChart.destroy();
+      }
+      managerChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: managers,
+          datasets: [{
+            label: 'Number of Mappers',
+            data: counts,
+            backgroundColor: ['#667eea', '#764ba2', '#34A853', '[MAC_ADDRESS]'],
+            borderColor: ['[MAC_ADDRESS]', '[MAC_ADDRESS]', '[MAC_ADDRESS]', '[MAC_ADDRESS]'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y',
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function updateTable() {
+      var tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = '';
+
+      if (filteredData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No data available</td></tr>';
+        return;
+      }
+
+      filteredData.forEach(function(item) {
+        var statusBadge = '';
+        if (item.todayStatus === 'Present') {
+          statusBadge = '<span class="status-badge status-present">✅ Present</span>';
+        } else if (item.todayStatus === 'Half Day') {
+          statusBadge = '<span class="status-badge status-half">🌙 Half Day</span>';
+        } else if (item.todayStatus === 'Leave') {
+          statusBadge = '<span class="status-badge status-leave">❌ Leave</span>';
+        } else {
+          statusBadge = '<span class="status-badge status-empty">⏳ Not Marked</span>';
+        }
+
+        var row = '<tr>' +
+          '<td><strong>' + item.mapperName + '</strong></td>' +
+          '<td><span class="manager-badge">' + item.manager + '</span></td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td>' + item.totalPresent + '</td>' +
+          '<td>' + item.totalHalf + '</td>' +
+          '<td>' + item.totalLeave + '</td>' +
+          '<td>' + item.totalOT + '</td>' +
+          '<td><strong>' + item.attendancePercent + '</strong></td>' +
+          '</tr>';
+        
+        tableBody.innerHTML += row;
+      });
+    }
+
+    function showError(message) {
+      document.getElementById('errorMessage').textContent = '❌ ' + message;
+      document.getElementById('errorMessage').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('errorMessage').style.display = 'none';
+      }, 5000);
+    }
+
+    function showSuccess(message) {
+      document.getElementById('successMessage').textContent = message;
+      document.getElementById('successMessage').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('successMessage').style.display = 'none';
+      }, 5000);
+    }
+
+    window.addEventListener('load', function() {
+      console.log('🚀 Dashboard loaded');
+      loadInitialData();
+    });
+  </script>
+</body>
+</html>
+
