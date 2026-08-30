@@ -392,8 +392,8 @@
 
     <!-- FILTER TABS -->
     <div class="filter-tabs">
-      <button class="filter-tab active" onclick="switchTab('single')">📅 Single Day</button>
-      <button class="filter-tab" onclick="switchTab('range')">📆 Date Range</button>
+      <button class="filter-tab active" onclick="switchTab(event, 'single')">📅 Single Day</button>
+      <button class="filter-tab" onclick="switchTab(event, 'range')">📆 Date Range</button>
     </div>
 
     <!-- SINGLE DAY FILTER -->
@@ -466,7 +466,7 @@
         </div>
 
         <div class="filter-buttons">
-          <button class="filter-btn" onclick="downloadRangeExcel()">📊 DOWNLOAD EXCEL (Date Range)</button>
+          <button class="download-btn" onclick="downloadRangeExcel()">📊 DOWNLOAD EXCEL</button>
         </div>
       </div>
     </div>
@@ -560,7 +560,7 @@
       { mapperName: 'charumathi munusamy', manager: 'Rashmi Nair', totalPresent: 20, totalHalf: 0, totalLeave: 1, totalNoUpdate: 1, totalOT: 0, attendancePercent: '99%', todayStatus: 'No Update', dateData: {'2026-08-25': 'Present', '2026-08-26': 'Present', '2026-08-27': 'Present', '2026-08-28': 'Present', '2026-08-29': 'No Update'} }
     ];
 
-    function switchTab(tab) {
+    function switchTab(event, tabName) {
       // Hide all sections
       document.getElementById('single').classList.remove('active');
       document.getElementById('range').classList.remove('active');
@@ -569,13 +569,13 @@
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
       
       // Show selected section
-      document.getElementById(tab).classList.add('active');
+      document.getElementById(tabName).classList.add('active');
       
       // Add active class to clicked tab
       event.target.classList.add('active');
       
       // Hide charts and stats for range view
-      if (tab === 'range') {
+      if (tabName === 'range') {
         document.getElementById('statsGrid').style.display = 'none';
         document.getElementById('attendanceChart').parentElement.parentElement.style.display = 'none';
         document.getElementById('dateInfo').style.display = 'none';
@@ -853,7 +853,7 @@
       var selectedManager = document.getElementById('rangeManagerFilter').value;
 
       if (!fromDate || !toDate) {
-        showError('Please select both From Date and To Date!');
+        showError('❌ Please select both From Date and To Date!');
         return;
       }
 
@@ -861,7 +861,7 @@
       var to = new Date(toDate);
 
       if (from > to) {
-        showError('From Date cannot be greater than To Date!');
+        showError('❌ From Date cannot be greater than To Date!');
         return;
       }
 
@@ -881,31 +881,32 @@
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Create HTML table
-      var html = '<table border="1"><tr><th>Mapper Name</th><th>Manager</th>';
+      // Create HTML table with dates as columns
+      var html = '<table border="1" style="border-collapse: collapse;"><tr><th style="background-color: #667eea; color: white; padding: 10px;">Mapper Name</th><th style="background-color: #667eea; color: white; padding: 10px;">Manager</th>';
       
       // Add date headers
       dates.forEach(function(date) {
-        var dateObj = new Date(date);
+        var dateObj = new Date(date + 'T00:00:00');
         var day = dateObj.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-        html += '<th>' + day + '</th>';
+        html += '<th style="background-color: #667eea; color: white; padding: 10px;">' + day + '</th>';
       });
       
       html += '</tr>';
 
       // Add data rows
       dataToExport.forEach(function(item) {
-        html += '<tr><td><strong>' + item.mapperName + '</strong></td><td>' + item.manager + '</td>';
+        html += '<tr><td style="padding: 10px;"><strong>' + item.mapperName + '</strong></td><td style="padding: 10px;">' + item.manager + '</td>';
         
         dates.forEach(function(date) {
           var status = item.dateData[date] || 'No Data';
-          var statusClass = '';
-          if (status === 'Present') statusClass = 'style="background-color: #d4edda;"';
-          else if (status === 'Half Day') statusClass = 'style="background-color: #fff3cd;"';
-          else if (status === 'Leave') statusClass = 'style="background-color: #f8d7da;"';
-          else if (status === 'No Update') statusClass = 'style="background-color: #e2e3e5;"';
+          var bgColor = '';
+          if (status === 'Present') bgColor = '#d4edda';
+          else if (status === 'Half Day') bgColor = '#fff3cd';
+          else if (status === 'Leave') bgColor = '#f8d7da';
+          else if (status === 'No Update') bgColor = '#e2e3e5';
+          else bgColor = '#ffffff';
           
-          html += '<td ' + statusClass + '>' + status + '</td>';
+          html += '<td style="padding: 10px; background-color: ' + bgColor + '; text-align: center;"><strong>' + status + '</strong></td>';
         });
         
         html += '</tr>';
@@ -925,11 +926,11 @@
       link.click();
       document.body.removeChild(link);
       
-      showSuccess('✅ Date Range Excel downloaded successfully!');
+      showSuccess('✅ Date Range Excel downloaded successfully! 📊');
     }
 
     function showError(message) {
-      document.getElementById('errorMessage').textContent = '❌ ' + message;
+      document.getElementById('errorMessage').textContent = message;
       document.getElementById('errorMessage').style.display = 'block';
       setTimeout(function() {
         document.getElementById('errorMessage').style.display = 'none';
